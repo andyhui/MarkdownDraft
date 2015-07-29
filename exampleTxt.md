@@ -1,3 +1,79 @@
+## tcp_v4_rcv()
+- tcp_v4_rcv()(net/ipv4/tcp_ipv4.c)
+
+   首先来看一下这个函数：
+```c
+int tcp_v4_rcv(struct sk_buff *skb)
+{
+    struct sock *sk;
+
+}
+```
+首先检查（检查packet type不是PACKE_HOST后者packet大小不足tcp首部长度-最少20字节）并丢弃这个包，如果这是个有问题的包，然后做相关的初始化，首调用__inet_lookup_skb()函数，然后根据tcp状态调用__inet_lookup_established()或者__inet_lookup_listener()，如果没有找到socket，则丢弃这个包。
+```c
+sk = __inet_lookup_skb(&tcp_hashinfo, skb, th-
+>source, th->dest);
+. . .
+if (!sk)
+goto no_tcp_socket;
+
+if (!sock_owned_by_user(sk)) {
+. . .
+{
+
+if (!tcp_prequeue(sk, skb))
+ret = tcp_v4_do_rcv(sk, skb);
+}
+
+} else if (unlikely(sk_add_backlog(sk,skb,sk->sk_rcvbuf + sk->sk_sndbuf))) {
+bh_unlock_sock(sk);
+NET_INC_STATS_BH(net,LINUX_MIB_TCPBACKLOGDROP);
+goto discard_and_relse;
+}
+}
+```
+
+然后我们看一下tcpv4_do_rcv()函数。
+```c
+int tcp_v4_do_rcv(struct sock *sk struct sk_buff
+*skb)
+{
+
+```
+如果tcp的状态是TCP_ESTABLISHED.则调用tcp_rcv_establishe()函数.
+```c
+if (sk->sk_state == TCP_ESTABLISHED) { /* Fast
+path */
+. . .
+if (tcp_rcv_established(sk, skb,
+tcp_hdr(skb), skb->len)) {
+rsk = sk;
+goto reset;
+}
+return 0;
+
+```
+如果tcp的状态是TCP_LISTE状态，则调用tcp_v4_hnd_req()函数
+```c
+if (sk->sk_state == TCP_LISTEN) {
+struct sock *nsk = tcp_v4_hnd_req(sk,skb);
+}
+
+```
+如果不是在TCP_LISTE状态，则调用tcp_rcv_state_process()函数。
+```c
+if (tcp_rcv_state_process(sk, skb,
+tcp_hdr(skb), skb->len)) {
+rsk = sk;
+goto reset;
+}
+return 0;
+reset:
+tcp_v4_send_reset(rsk, skb);
+}
+
+```
+
 # Dillinger
 
 Dillinger is a cloud-enabled, mobile-ready, offline-storage, AngularJS powered HTML5 Markdown editor.
