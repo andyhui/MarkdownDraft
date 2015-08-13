@@ -1,8 +1,8 @@
 # tcp_keepalive
 如果长时间不发送数据，怎么知道是否连接还是有效的，通过tcp_keepalive的三个参数就能知道，如果这个连接不是有效连接就删除这个连接，从而节约资源，提高效率。常用的keepalive的三个tcp keepalive的三个tcp配置选项是：
 - net.ipv4.tcp_keepalive_probes(发送keepalive的次数)
-- net.ipv4.tcp_keepalive_intvl（发送keepalivede ）
-- net.ipv4.tcp_fin_timeout
+- net.ipv4.tcp_keepalive_intvl（发送keepalive的间隔）
+- net.ipv4.tcp_fin_timeout(长时间不发送数据，多长时间后开始发送keepalive)
 # spdy协议介绍
 # tcp fast open
 允许在三次握手阶段携带数据，是tcp协议的增加，由google提出。
